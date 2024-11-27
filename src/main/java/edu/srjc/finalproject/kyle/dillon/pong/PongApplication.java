@@ -1,5 +1,13 @@
-package edu.srjc.finalproject.kyle.dillon.pong;
+/*
+Name: Dillon Kyle
+Email: dillonkyle95@protonmail.com
+Date: 2024-11-26
+Project Name: Final Project
+Course: CS17.11
+Description: Application boilerplate for the Pong game.
+*/
 
+package edu.srjc.finalproject.kyle.dillon.pong;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;

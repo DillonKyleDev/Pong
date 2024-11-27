@@ -1,3 +1,13 @@
+/*
+Name: Dillon Kyle
+Email: dillonkyle95@protonmail.com
+Date: 2024-11-26
+Project Name: Final Project
+Course: CS17.11
+Description: A rudimentary AI for the right paddle when 1 Player mode is active.  All it does is chase the balls y-position
+at a speed dependent on the game's difficulty mode.  The AI's max speed is the same as the player's.
+*/
+
 package edu.srjc.finalproject.kyle.dillon.pong;
 
 public class EnemyAI
@@ -30,9 +40,14 @@ public class EnemyAI
         m_target = target;
     }
 
-    void setReactionTime(float reactionTime)
+    void setEasyMode()
     {
-        m_reactionTime = reactionTime;
+        m_reactionTime = 0.015f;
+    }
+
+    void setHardMode()
+    {
+        m_reactionTime = 0.03f;
     }
 
     private GameObject m_target = new GameObject();

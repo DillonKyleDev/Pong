@@ -1,3 +1,13 @@
+/*
+Name: Dillon Kyle
+Email: dillonkyle95@protonmail.com
+Date: 2024-11-26
+Project Name: Final Project
+Course: CS17.11
+Description: The GameObject class manages an objects physics (position & velocity), sprite (ImageView),
+and BoxCollider.
+*/
+
 package edu.srjc.finalproject.kyle.dillon.pong;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -12,7 +22,7 @@ public class GameObject
     void setImagePath(String path)
     {
         Image newImage = new Image(Objects.requireNonNull(getClass().getResource(path)).toString(), true);
-        m_sprite = new ImageView(newImage);
+        m_sprite.setImage(newImage);
     }
 
     ImageView getImageView()
@@ -23,7 +33,6 @@ public class GameObject
     void updatePosition()
     {
         applyFriction();
-
         m_position = new Vector2(m_position.x + m_velocity.x, m_position.y + m_velocity.y);
         m_sprite.setTranslateX(m_position.x);
         m_sprite.setTranslateY(m_position.y);
@@ -43,7 +52,7 @@ public class GameObject
         return m_position;
     }
 
-    // "physics" modelled after my design of my personal game engine project, FlatEngine: https://github.com/DillonKyleDev/FlatEngine__2D-Game-Engine
+    // "physics" modelled after my design of my game engine project, FlatEngine: https://github.com/DillonKyleDev/FlatEngine__2D-Game-Engine
     void setVelocity(Vector2 velocity)
     {
         m_velocity = velocity;

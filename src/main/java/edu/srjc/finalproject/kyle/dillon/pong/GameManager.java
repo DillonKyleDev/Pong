@@ -1,11 +1,23 @@
+/*
+Name: Dillon Kyle
+Email: dillonkyle95@protonmail.com
+Date: 2024-11-26
+Project Name: Final Project
+Course: CS17.11
+Description: The GameManager class handles all the game logic, settings, and the game loop itself through the handle() method,
+extended from the AnimationTimer abstract class. https://docs.oracle.com/javase/8/javafx/api/javafx/animation/AnimationTimer.html
+*/
+
 package edu.srjc.finalproject.kyle.dillon.pong;
 import javafx.animation.AnimationTimer;
 import javafx.fxml.FXML;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
+import javafx.scene.shape.Circle;
 import javafx.scene.text.Text;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
@@ -30,11 +42,6 @@ public class GameManager extends AnimationTimer
     public void handle(long now)
     {
         handleEvents();
-
-        m_ball.applySpin();
-        m_ball.updatePosition();
-        m_leftPaddle.updatePaddlePosition();
-
         if (m_gameType == GameType.ONEPLAYER)
         {
             if (m_ball.getVelocity().x > 0)
@@ -46,16 +53,20 @@ public class GameManager extends AnimationTimer
                 m_AI.moveToCenter();
             }
         }
-        m_rightPaddle.updatePaddlePosition();
 
+        m_ball.applySpin();
+        m_ball.updatePosition();
+        m_leftPaddle.updatePaddlePosition();
+        m_rightPaddle.updatePaddlePosition();
+        updateSpinGauges();
         checkForCollisions();
     }
 
     GameManager()
     {
-        String goalAudioPath = getClass().getResource("audio/goal.wav").toString();
-        String paddleHitAudioPath = getClass().getResource("audio/paddle.wav").toString();
-        String wallHitAudioPath = getClass().getResource("audio/wall.wav").toString();
+        String goalAudioPath = Objects.requireNonNull(getClass().getResource("audio/goal.wav")).toString();
+        String paddleHitAudioPath = Objects.requireNonNull(getClass().getResource("audio/paddle.wav")).toString();
+        String wallHitAudioPath = Objects.requireNonNull(getClass().getResource("audio/wall.wav")).toString();
 
         Media goalAudio = new Media(goalAudioPath);
         Media paddleAudio = new Media(paddleHitAudioPath);
@@ -66,6 +77,7 @@ public class GameManager extends AnimationTimer
         m_wallHitSound = new MediaPlayer(wallAudio);
 
         initializeGameObjects();
+
         m_ball.hide();
         m_leftPaddle.hide();
         m_rightPaddle.hide();
@@ -114,7 +126,7 @@ public class GameManager extends AnimationTimer
     {
         m_player1score++;
         text_player1Score.setText(String.valueOf(m_player1score));
-        m_serveDirection = new Vector2(-5, 0);
+        m_serveDirection = new Vector2(-m_paddleForce, 0);
         m_ball.enableLeftCollision();
 
         if (m_player1score >= m_winningScore)
@@ -126,7 +138,7 @@ public class GameManager extends AnimationTimer
     {
         m_player2score++;
         text_player2Score.setText(String.valueOf(m_player2score));
-        m_serveDirection = new Vector2(5, 0);
+        m_serveDirection = new Vector2(m_paddleForce, 0);
         m_ball.enableRightCollision();
 
         if (m_player2score >= m_winningScore)
@@ -180,46 +192,73 @@ public class GameManager extends AnimationTimer
         }
         if (b_hitLeftPaddle)
         {
-            float distFromPaddleCenter = m_ball.getCollider().getDistanceFromCenter() * 10;
-            m_ball.setVelocity(new Vector2(5, distFromPaddleCenter));
+            float distFromPaddleCenter = m_ball.getCollider().getDistanceFromCenter();
+            m_ball.setVelocity(new Vector2(m_paddleForce, distFromPaddleCenter * 10));
             m_ball.applyGameSpeed(m_gameSpeed);
             m_ball.enableRightCollision();
-            if (m_leftPaddle.getVelocity().y > 5)
+
+            if (m_leftPaddle.getVelocity().y >= m_paddleSpeedToSpin)
             {
-                m_ball.setSpin(0.3f);
+                m_ball.setSpin(m_maxBallSpin);
             }
-            else if (m_leftPaddle.getVelocity().y < -5)
+            else if (m_leftPaddle.getVelocity().y <= -m_paddleSpeedToSpin)
             {
-                m_ball.setSpin(-0.3f);
+                m_ball.setSpin(-m_maxBallSpin);
             }
         }
         else if (b_hitRightPaddle)
         {
-            float distFromPaddleCenter = m_ball.getCollider().getDistanceFromCenter() * 10;
-            m_ball.setVelocity(new Vector2(-5, distFromPaddleCenter));
+            float distFromPaddleCenter = m_ball.getCollider().getDistanceFromCenter();
+            m_ball.setVelocity(new Vector2(-m_paddleForce, distFromPaddleCenter * 10));
             m_ball.applyGameSpeed(m_gameSpeed);
             m_ball.enableLeftCollision();
-            if (m_gameType == GameType.ONEPLAYER)
+
+            if (m_rightPaddle.getVelocity().y >= m_paddleSpeedToSpin)
             {
-                if (m_rightPaddle.getVelocity().y > 8)
-                {
-                    m_ball.setSpin(0.3f);
-                } else if (m_rightPaddle.getVelocity().y < -8)
-                {
-                    m_ball.setSpin(-0.3f);
-                }
+                m_ball.setSpin(m_maxBallSpin);
             }
-            else
+            else if (m_rightPaddle.getVelocity().y <= -m_paddleSpeedToSpin)
             {
-                if (m_rightPaddle.getVelocity().y > 5)
-                {
-                    m_ball.setSpin(0.3f);
-                } else if (m_rightPaddle.getVelocity().y < -5)
-                {
-                    m_ball.setSpin(-0.3f);
-                }
+                m_ball.setSpin(-m_maxBallSpin);
             }
         }
+    }
+
+    void updateSpinGauges()
+    {
+        float player1PercentToSpin = m_leftPaddle.getVelocity().y / m_paddleSpeedToSpin;
+        float player2PercentToSpin = m_rightPaddle.getVelocity().y / m_paddleSpeedToSpin;
+
+        if (player1PercentToSpin < 0)
+        {
+            player1PercentToSpin *= -1;
+        }
+        if (player1PercentToSpin >= 1)
+        {
+            player1PercentToSpin = 1;
+            circle_spinGaugeWhite1.setOpacity(1);
+        }
+        else
+        {
+            circle_spinGaugeWhite1.setOpacity(0);
+        }
+
+        if (player2PercentToSpin < 0)
+        {
+            player2PercentToSpin *= -1;
+        }
+        if (player2PercentToSpin >= 1)
+        {
+            player2PercentToSpin = 1;
+            circle_spinGaugeWhite2.setOpacity(1);
+        }
+        else
+        {
+            circle_spinGaugeWhite2.setOpacity(0);
+        }
+
+        circle_spinGauge1.setOpacity(player1PercentToSpin);
+        circle_spinGauge2.setOpacity(player2PercentToSpin);
     }
 
     // resource used for Audio: https://docs.oracle.com/javase/8/javafx/api/javafx/scene/media/MediaPlayer.html#setOnStopped-java.lang.Runnable-
@@ -251,10 +290,10 @@ public class GameManager extends AnimationTimer
             switch (m_difficulty)
             {
                 case Difficulty.EASY:
-                    m_AI.setReactionTime(0.01f);
+                    m_AI.setEasyMode();
                     break;
                 case Difficulty.HARD:
-                    m_AI.setReactionTime(0.05f);
+                    m_AI.setHardMode();
                     break;
             }
         }
@@ -264,7 +303,7 @@ public class GameManager extends AnimationTimer
     void endGameLoop()
     {
         stop();
-        m_serveDirection = new Vector2(-5, 0);
+        m_serveDirection = new Vector2(-m_paddleForce, 0);
         m_player1score = 0;
         m_player2score = 0;
         text_player1Score.setText(String.valueOf(m_player1score));
@@ -309,6 +348,15 @@ public class GameManager extends AnimationTimer
         m_pressedKeys.remove(code);
     }
 
+    void setGameType(GameType type)
+    {
+        m_gameType = type;
+    }
+    void setDifficulty(Difficulty difficulty)
+    {
+        m_difficulty = difficulty;
+    }
+
     void setMenuPane(Pane pane)
     {
         pane_menu = pane;
@@ -340,15 +388,15 @@ public class GameManager extends AnimationTimer
     {
         hbox_scoreBoard = hbox;
     }
-
-    void setGameType(GameType type)
+    void setSpinGauge1(Circle greenCircle, Circle whiteCircle)
     {
-        m_gameType = type;
+        circle_spinGauge1 = greenCircle;
+        circle_spinGaugeWhite1 = whiteCircle;
     }
-
-    void setDifficulty(Difficulty difficulty)
+    void setSpinGauge2(Circle greenCircle, Circle whiteCircle)
     {
-        m_difficulty = difficulty;
+        circle_spinGauge2 = greenCircle;
+        circle_spinGaugeWhite2 = whiteCircle;
     }
 
     @FXML
@@ -365,12 +413,23 @@ public class GameManager extends AnimationTimer
     private Text text_player2Score;
     @FXML
     private HBox hbox_scoreBoard;
+    @FXML
+    private Circle circle_spinGauge1;
+    @FXML
+    private Circle circle_spinGaugeWhite1;
+    @FXML
+    private Circle circle_spinGauge2;
+    @FXML
+    private Circle circle_spinGaugeWhite2;
 
     private long m_player1score = 0;
     private long m_player2score = 0;
     private Vector2 m_serveDirection = new Vector2(-5, 0);
-    private long m_winningScore = 7;
+    final private long m_winningScore = 7;
     private float m_gameSpeed = 1;
+    final private float m_paddleForce = 5;
+    final private float m_maxBallSpin = 0.3f;
+    final private float m_paddleSpeedToSpin = 6.0f;
     private GameType m_gameType = GameType.TWOPLAYER;
     private Set<String> m_pressedKeys = new HashSet<>();
     private Ball m_ball = new Ball();

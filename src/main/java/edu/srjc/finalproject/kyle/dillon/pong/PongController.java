@@ -1,9 +1,19 @@
-package edu.srjc.finalproject.kyle.dillon.pong;
+/*
+Name: Dillon Kyle
+Email: dillonkyle95@protonmail.com
+Date: 2024-11-26
+Project Name: Final Project
+Course: CS17.11
+Description: Controller for the Pong view.  Sends FXML elements to the GameManager to manipulate from there and sets up
+key press event handlers on the Scene.
+*/
 
+package edu.srjc.finalproject.kyle.dillon.pong;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
+import javafx.scene.shape.Circle;
 import javafx.scene.text.Text;
 import java.net.URL;
 import java.util.ResourceBundle;
@@ -21,6 +31,8 @@ public class PongController implements Initializable
         m_gameManager.setPlayer1ScoreText(text_player1Score);
         m_gameManager.setPlayer2ScoreText(text_player2Score);
         m_gameManager.setScoreBoard(hbox_scoreBoard);
+        m_gameManager.setSpinGauge1(circle_spinGauge1, circle_spinGaugeWhite1);
+        m_gameManager.setSpinGauge2(circle_spinGauge2, circle_spinGaugeWhite2);
     }
 
     // resource used for event handling: https://www.demo2s.com/g/java/how-to-use-javafx-detect-if-a-key-is-being-held-down-in-java.html
@@ -91,6 +103,14 @@ public class PongController implements Initializable
     private Text text_player2Score;
     @FXML
     private HBox hbox_scoreBoard;
+    @FXML
+    private Circle circle_spinGauge1;
+    @FXML
+    private Circle circle_spinGaugeWhite1;
+    @FXML
+    private Circle circle_spinGauge2;
+    @FXML
+    private Circle circle_spinGaugeWhite2;
 
     private GameManager m_gameManager = new GameManager();
 }
